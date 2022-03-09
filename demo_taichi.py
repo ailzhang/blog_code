@@ -5,6 +5,7 @@ import numpy as np
 from utils import Timer, save_to_image, generate_tile_image
 
 ti.init(arch=ti.cpu)
+device = 'cuda'
 
 tile_width = 32
 tile_height = 32
@@ -17,13 +18,12 @@ ivec2 = lambda x, y: ti.Vector([x, y], dt=ti.i32)
 shift_x = ivec2(tile_width, 0)
 shift_y = ivec2(sx, tile_height)
 
-tile = generate_tile_image(tile_height, tile_width)
-origin = ivec2(pw, ph)
+tile = generate_tile_image(tile_height, tile_width, device)
 
 image_width = tile_width + 2 * pw
 image_height = tile_height + 2 * ph
 
-image_pixels = torch.zeros((image_height, image_width, 3), dtype=torch.float)
+image_pixels = torch.zeros((image_height, image_width, 3), device=device, dtype=torch.float)
 
 
 @ti.func
@@ -70,6 +70,10 @@ def pad(image_pixels: ti.ext_arr(), tile: ti.any_arr()):
         image_pixels[row, col, 1] = tile[x_int, y_int, 1]
         image_pixels[row, col, 2] = tile[x_int, y_int, 2]
 
+# Excludes Taichi JIT compilation
+pad(image_pixels, tile)
+# Reinitialize image_pixels to zeros
+image_pixels = torch.zeros((image_height, image_width, 3), device=device, dtype=torch.float)
 
 with Timer():
     pad(image_pixels, tile)

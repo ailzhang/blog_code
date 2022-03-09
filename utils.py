@@ -14,13 +14,13 @@ class Timer:
 
 
 def save_to_image(image_pixels, name):
-    image_pixels = (255 * image_pixels.numpy()).astype(np.uint8)
+    image_pixels = (255 * image_pixels.cpu().numpy()).astype(np.uint8)
     Image.fromarray(image_pixels).save(f"{name}.png")
 
 
-def generate_tile_image(tile_height, tile_width):
+def generate_tile_image(tile_height, tile_width, device):
     tile = torch.arange(0, tile_width * tile_height * 3,
-                        dtype=torch.float).reshape(tile_height, tile_width, 3)
+                        dtype=torch.float, device=device).reshape(tile_height, tile_width, 3)
     tile = tile / (tile_height * tile_width * 3)
     for row in range(tile_height):
         for col in range(tile_width):
