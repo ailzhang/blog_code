@@ -7,7 +7,7 @@ ti.init(arch=ti.gpu)
 torch_device = 'cuda'
 
 tile_width = 32
-tile_height = 32
+tile_height = 48
 pw = 128
 ph = 128
 sx = 10

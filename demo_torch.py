@@ -6,7 +6,7 @@ from utils import save_to_image, generate_tile_image, Timer
 
 device = 'cuda'
 tile_width = 32
-tile_height = 32
+tile_height = 48
 pw = 128
 ph = 128
 sx = 16

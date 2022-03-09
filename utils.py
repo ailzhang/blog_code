@@ -27,6 +27,7 @@ def generate_tile_image(tile_height, tile_width, device):
     tile = torch.arange(0,
                         tile_width * tile_height,
                         dtype=torch.float,
-                        device=device).reshape(tile_height, tile_width)
+                        device=device).reshape(tile_width, tile_height)
+    tile = torch.rot90(tile, -1, (0, 1)).contiguous()
     tile = tile / (tile_height * tile_width)
     return tile
