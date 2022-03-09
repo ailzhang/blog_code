@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import math
+import pdb
 from PIL import Image
 import torch
 
@@ -14,17 +15,18 @@ class Timer:
 
 
 def save_to_image(image_pixels, name):
+    r = torch.sin(math.pi * image_pixels)
+    g = torch.cos(math.pi * image_pixels / 2)
+    b = torch.zeros_like(image_pixels)
+    image_pixels = torch.stack([r, g, b], axis=2)
     image_pixels = (255 * image_pixels.cpu().numpy()).astype(np.uint8)
     Image.fromarray(image_pixels).save(f"{name}.png")
 
 
 def generate_tile_image(tile_height, tile_width, device):
-    tile = torch.arange(0, tile_width * tile_height * 3,
-                        dtype=torch.float, device=device).reshape(tile_height, tile_width, 3)
-    tile = tile / (tile_height * tile_width * 3)
-    for row in range(tile_height):
-        for col in range(tile_width):
-            tile[row, col, 0] = math.sin(math.pi * tile[row, col, 0])
-            tile[row, col, 1] = math.cos(math.pi * tile[row, col, 1] / 2)
-            tile[row, col, 2] = 0
+    tile = torch.arange(0,
+                        tile_width * tile_height,
+                        dtype=torch.float,
+                        device=device).reshape(tile_height, tile_width)
+    tile = tile / (tile_height * tile_width)
     return tile
