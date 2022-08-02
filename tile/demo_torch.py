@@ -1,20 +1,13 @@
 import numpy as np
 import math
-import pdb
 import torch
-from utils import save_to_image, generate_tile_image, Timer
+from utils import save_to_image, generate_tile_image, Timer, tile_height, tile_width, pw, ph, sx
 
 device = 'cuda'
-tile_width = 32
-tile_height = 48
-pw = 128
-ph = 128
-sx = 16
 shift_x = torch.tensor([tile_width, 0], device=device)
 shift_y = torch.tensor([sx, tile_height], device=device)
 
-tile = generate_tile_image(tile_height, tile_width, device)
-save_to_image(tile, 'orig_torch')
+tile = generate_tile_image(tile_height, tile_width)
 
 image_width = tile_width + 2 * pw
 image_height = tile_height + 2 * ph
@@ -56,10 +49,19 @@ cy, cx = torch.meshgrid(ncols, nrows)
 coords = torch.stack((cx.T, cy.T), axis=2)
 y = torch.tensor(tile.stride(), device=device, dtype=torch.float)
 
+# warmup
+for _ in range(10):
+    table = map_pixel(coords)
+    table = table.view(-1, 2).to(torch.float)
+    inds = table.mv(y)
+    gathered = torch.index_select(tile.view(-1), 0, inds.to(torch.long))
+    inds.zero_()
+    gathered.zero_()
+
 with Timer():
     table = map_pixel(coords)
     table = table.view(-1, 2).to(torch.float)
     inds = table.mv(y)
     gathered = torch.index_select(tile.view(-1), 0, inds.to(torch.long))
 
-save_to_image(gathered.reshape(image_height, image_width), 'torch')
+save_to_image(gathered.reshape(image_height, image_width), 'out_torch')

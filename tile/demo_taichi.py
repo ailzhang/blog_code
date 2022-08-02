@@ -1,22 +1,15 @@
 import taichi as ti
 import torch
 import numpy as np
-from utils import Timer, save_to_image, generate_tile_image
+from utils import Timer, save_to_image, generate_tile_image, tile_height, tile_width, pw, ph, sx
 
 ti.init(arch=ti.gpu)
 torch_device = 'cuda'
-
-tile_width = 32
-tile_height = 48
-pw = 128
-ph = 128
-sx = 10
 
 shift_x = (tile_width, 0)
 shift_y = (sx, tile_height)
 
 tile = generate_tile_image(tile_height, tile_width, torch_device)
-save_to_image(tile, 'orig_taichi')
 
 image_width = tile_width + 2 * pw
 image_height = tile_height + 2 * ph
@@ -78,4 +71,4 @@ image_pixels = torch.zeros((image_height, image_width),
 with Timer():
     pad(image_pixels, tile)
 
-save_to_image(image_pixels, 'taichi')
+save_to_image(image_pixels, 'out_taichi')
