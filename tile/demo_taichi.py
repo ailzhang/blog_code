@@ -67,7 +67,7 @@ def coord_to_tile_pixel(x, y):
 
 
 @ti.kernel
-def pad(image_pixels: ti.ext_arr(), tile: ti.any_arr()):
+def pad(image_pixels: ti.types.ndarray(), tile: ti.types.ndarray()):
     for row, col in ti.ndrange(image_height, image_width):
         x, y = map_pixel(row, col)
         image_pixels[row, col] = tile[x, y]
