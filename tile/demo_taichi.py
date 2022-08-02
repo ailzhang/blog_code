@@ -27,16 +27,11 @@ image_pixels = torch.zeros((image_height, image_width),
 
 
 @ti.func
-def ivec2(x, y):
-    return ti.Vector([x, y], dt=ti.i32)
-
-
-@ti.func
 def image_pixel_to_coord(x, y):
     """Map a pixel in the large image to its coordinates (x, y) relative to the origin.
     (which is the lower left corner of the tile image)
     """
-    return ivec2(y - pw, image_height - 1 - x + ph)
+    return ti.math.ivec2(y - pw, image_height - 1 - x + ph)
 
 
 @ti.func
@@ -46,7 +41,7 @@ def map_coord(x, y):
     """
     v: ti.i32 = ti.floor(y / tile_height)
     u: ti.i32 = ti.floor((x - v * shift_y[0]) / tile_width)
-    return ivec2(x - u * shift_x[0] - v * shift_y[0],
+    return ti.math.ivec2(x - u * shift_x[0] - v * shift_y[0],
                  y - u * shift_x[1] - v * shift_y[1])
 
 
@@ -63,7 +58,7 @@ def coord_to_tile_pixel(x, y):
     Assuming a point P with coordinates (x, y) lies in this tile, this function
     maps P's coordinates to its actual pixel location in the tile image.
     """
-    return ivec2(tile_height - 1 - y, x)
+    return ti.math.ivec2(tile_height - 1 - y, x)
 
 
 @ti.kernel
