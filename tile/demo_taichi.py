@@ -16,7 +16,6 @@ shift_x = (tile_width, 0)
 shift_y = (sx, tile_height)
 
 tile = generate_tile_image(tile_height, tile_width, torch_device)
-save_to_image(tile, 'orig_taichi')
 
 image_width = tile_width + 2 * pw
 image_height = tile_height + 2 * ph
@@ -78,4 +77,4 @@ image_pixels = torch.zeros((image_height, image_width),
 with Timer():
     pad(image_pixels, tile)
 
-save_to_image(image_pixels, 'taichi')
+save_to_image(image_pixels, 'out_taichi')
