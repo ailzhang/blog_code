@@ -10,7 +10,7 @@ tile_height = 48
 pw = 4096
 ph = 2048
 sx = 10
-
+N = 8
 
 class Timer:
     def __enter__(self):
