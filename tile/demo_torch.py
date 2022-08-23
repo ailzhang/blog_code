@@ -20,21 +20,20 @@ cy, cx = torch.meshgrid(ncols, nrows)
 coords = torch.stack((cx.T, cy.T), axis=2)
 y = torch.tensor(tile.stride(), device=device, dtype=torch.float)
 
-
-def torch_pad(arr, tile, y):
+def torch_pad(arr, tile, y, image_height: int, ph: int, pw: int, tile_height: int, tile_width: int, shift_x, shift_y):
     # image_pixel_to_coord
     arr[:, :, 0] = image_height - 1 + ph - arr[:, :, 0]
     arr[:, :, 1] -= pw
     arr1 = torch.flip(arr, (2, ))
-    
+
     # map_coord
     v = torch.floor(arr1[:, :, 1] / tile_height).to(torch.int)
     u = torch.floor((arr1[:, :, 0] - v * shift_y[0]) / tile_width).to(torch.int)
-    uu = torch.stack((u, u), axis=2)
-    vv = torch.stack((v, v), axis=2)
+    uu = torch.stack((u, u), dim=2)
+    vv = torch.stack((v, v), dim=2)
     arr2 = arr1 - uu * shift_x - vv * shift_y
 
-    # coord_to_tile_pixel    
+    # coord_to_tile_pixel
     arr2[:, :, 1] = tile_height - 1 - arr2[:, :, 1]
     table = torch.flip(arr2, (2, ))
     table = table.view(-1, 2).to(torch.float)
@@ -43,16 +42,18 @@ def torch_pad(arr, tile, y):
 
     return gathered
 
-# Warmup: PyTorch code dramatically slows down when GPU RAM hits its limit 
+scripted_torch_pad = torch.jit.script(torch_pad)
+print(scripted_torch_pad.graph)
+# Warmup: PyTorch code dramatically slows down when GPU RAM hits its limit
 # so it actually need a bit tweak to find the best runs.
 for _ in range(3):
-    gathered = torch_pad(coords, tile, y)
+    gathered = scripted_torch_pad(coords, tile, y, image_height, ph, pw, tile_height, tile_width, shift_x, shift_y)
     gathered.zero_()
 
 # with torch.profiler.profile(activities=[torch.profiler.ProfilerActivity.CUDA]) as prof:
 for _ in range(N):
     with Timer():
-        gathered = torch_pad(coords, tile, y)
+        gathered = scripted_torch_pad(coords, tile, y, image_height, ph, pw, tile_height, tile_width, shift_x, shift_y)
         torch.cuda.synchronize(device=device)
 # print(prof.key_averages().table(sort_by="self_cuda_time_total"))
 
